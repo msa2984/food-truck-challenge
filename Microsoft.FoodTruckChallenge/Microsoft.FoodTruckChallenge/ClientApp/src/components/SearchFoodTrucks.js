@@ -15,7 +15,6 @@ export default function SearchFoodTrucks() {
   const [longitude, setLongitude] = useState(180);
   const [message, setMessage] = useState("Waiting for form submission.");
   const [errorMessage, setErrorMessage] = useState(null);
-  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
 
   const ConvertStatusToString = (status) => {
     switch (status) {
@@ -36,59 +35,79 @@ export default function SearchFoodTrucks() {
 
   const onLatitudeChange = (e) => {
     const { value } = e.target;
-    if (value <= 90 && value >= -90) {
+    if (validateLatitude(value)) {
       setLatitude(value);
       setErrorMessage(null);
     } else {
-      setIsSubmitDisabled(true);
       setErrorMessage("Please provide a latitude value between -90 and 90.");
     }
   };
 
+  const validateLatitude = (value) => {
+    return value <= 90 && value >= -90;
+  };
+
   const onLongitudeChange = (e) => {
     const { value } = e.target;
-    if (value <= 180 && value >= -180) {
+    if (validateLongitude(value)) {
       setLongitude(value);
       setErrorMessage(null);
     } else {
-      setIsSubmitDisabled(true);
       setErrorMessage("Please provide a longitude value between -180 and 180.");
     }
   };
 
+  const validateLongitude = (value) => {
+    return value <= 180 && value >= -180;
+  };
+
   const onResultCountChange = (e) => {
     const { value } = e.target;
-    if (value <= maxResultCount && value >= defaultResultCount) {
+    if (validateResultCount(value)) {
       setResultsDisplayCount(value);
       setErrorMessage(null);
     } else {
-      setIsSubmitDisabled(true);
       setErrorMessage(
         `Please provide a truck count between ${defaultResultCount} and ${maxResultCount}.`
       );
     }
   };
 
+  const validateResultCount = (value) => {
+    return value <= maxResultCount && value >= defaultResultCount;
+  };
+
   const onSubmitFormSortResults = async (e) => {
     // don't reload the page.
     e.preventDefault();
-    setMessage("Please wait, loading results...");
-    const foodTruckResponse = await FoodTruckApiCaller.getFoodTrucksByProximity(
-      latitude,
-      longitude,
-      resultDisplayCount
-    );
-    if (foodTruckResponse && foodTruckResponse.ok) {
-      const sortedFoodTrucks = await foodTruckResponse.json();
-
-      setSortedResults(sortedFoodTrucks);
-      setMessage(`The following trucks are the closest in proximity to ${latitude}
-      latitude and ${longitude}`);
-      setErrorMessage(null);
-    } else {
+    if (
+      !validateLatitude(latitude) ||
+      !validateLongitude(longitude) ||
+      !validateResultCount(resultDisplayCount)
+    ) {
       setErrorMessage(
-        "Failed to receive a response from the server with food truck information."
+        `Please ensure latitude is between -90 and 90, longitude is between -180 and 180, and the result count is between ${defaultResultCount} and ${maxResultCount}`
       );
+    } else {
+      setMessage("Please wait, loading results...");
+      const foodTruckResponse =
+        await FoodTruckApiCaller.getFoodTrucksByProximity(
+          latitude,
+          longitude,
+          resultDisplayCount
+        );
+      if (foodTruckResponse && foodTruckResponse.ok) {
+        const sortedFoodTrucks = await foodTruckResponse.json();
+
+        setSortedResults(sortedFoodTrucks);
+        setMessage(`The following trucks are the closest in proximity to ${latitude}
+      latitude and ${longitude}`);
+        setErrorMessage(null);
+      } else {
+        setErrorMessage(
+          "Failed to receive a response from the server with food truck information."
+        );
+      }
     }
   };
 
@@ -105,7 +124,7 @@ export default function SearchFoodTrucks() {
     if (foodTrucks == null) {
       getAllFoodTrucks();
     }
-  }, [setFoodTrucks, setMaxResultCount]);
+  }, [foodTrucks, setFoodTrucks, setMaxResultCount]);
 
   return (
     <div className="w-100 h-50">
@@ -118,7 +137,7 @@ export default function SearchFoodTrucks() {
             id="latitude"
             name="latitude"
             className="ml-2"
-            defaultValue={latitude}
+            value={latitude}
             onChange={onLatitudeChange}
           />
         </Label>
@@ -129,7 +148,7 @@ export default function SearchFoodTrucks() {
             id="longitude"
             name="longitude"
             className="ml-2"
-            defaultValue={longitude}
+            value={longitude}
             onChange={onLongitudeChange}
           />
         </Label>
@@ -140,7 +159,7 @@ export default function SearchFoodTrucks() {
             id="max-result-count"
             name="max-result-count"
             className="ml-2"
-            defaultValue={defaultResultCount}
+            value={resultDisplayCount}
             onChange={onResultCountChange}
           />
           <small className="d-block text-info mt-2">
@@ -162,7 +181,6 @@ export default function SearchFoodTrucks() {
               id="reset-form"
               name="reset-form"
               className="btn btn-danger"
-              disabled={{ isSubmitDisabled }}
             >
               Reset Form
             </button>
@@ -192,7 +210,7 @@ export default function SearchFoodTrucks() {
               <tbody>
                 {sortedResults.map((value, key) => {
                   return (
-                    <tr>
+                    <tr key={key}>
                       <td>{value.objectId}</td>
                       <td>{value.applicant}</td>
                       <td>{value.foodItems}</td>
