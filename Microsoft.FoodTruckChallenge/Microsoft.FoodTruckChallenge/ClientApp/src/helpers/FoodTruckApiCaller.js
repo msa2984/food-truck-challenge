@@ -1,7 +1,6 @@
 ﻿export class FoodTruckApiCaller {
  static async getAll() {
-     
-    const url = `/api/FoodTruck/GetAll`;
+    const url = `/api/FoodTruck/GetAllFoodTrucks`;
     const callOptions = { method: "GET", "Content-Type": "application/json" };
     return fetch(url, callOptions);
  }
