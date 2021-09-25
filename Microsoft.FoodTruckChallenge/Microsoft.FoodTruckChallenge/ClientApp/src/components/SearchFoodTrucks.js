@@ -202,8 +202,7 @@ export default function SearchFoodTrucks() {
                   <th>Name</th>
                   <th>Food</th>
                   <th>Address</th>
-                  <th>Latitude</th>
-                  <th>Longitude</th>
+                  <th>Lat / Long</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -215,8 +214,7 @@ export default function SearchFoodTrucks() {
                       <td>{value.applicant}</td>
                       <td>{value.foodItems}</td>
                       <td>{value.address}</td>
-                      <td>{value.latitude}</td>
-                      <td>{value.longitude}</td>
+                      <td>{value.latitude.toFixed(5)} / {value.longitude.toFixed(5)}</td>
                       <td>{ConvertStatusToString(value.status)}</td>
                     </tr>
                   );
